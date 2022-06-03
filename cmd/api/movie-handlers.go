@@ -44,6 +44,28 @@ func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *application) getAllMoviesByGenre(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	genreID, err := strconv.Atoi(params.ByName("genre_id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	movies, err := app.models.DB.All(genreID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, movies, "movie")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+}
+
 // func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request) {
 // }
 
@@ -55,3 +77,39 @@ func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
 
 // func (app *application) searchMovie(w http.ResponseWriter, r *http.Request) {
 // }
+
+func (app *application) getAllGenres(w http.ResponseWriter, r *http.Request) {
+
+	genres, err := app.models.DB.AllGenres()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, genres, "genres")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+}
+
+func (app *application) getOneGenre(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		app.logger.Println(errors.New("invalid id parameter"))
+		app.errorJSON(w, err)
+		return
+	}
+
+	genre, err := app.models.DB.GetGenre(id)
+	if err != nil {
+		app.logger.Println(err)
+	}
+
+	err = app.writeJSON(w, http.StatusOK, genre, "genre")
+	if err != nil {
+		app.logger.Println(err)
+	}
+}
